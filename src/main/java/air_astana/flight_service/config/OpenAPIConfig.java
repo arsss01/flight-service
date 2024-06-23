@@ -13,7 +13,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @EnableWebMvc
-@OpenAPIDefinition(info = @Info(title = "Admin api service"))
+@OpenAPIDefinition(info = @Info(title = "Flight service"))
 public class OpenAPIConfig implements WebMvcConfigurer {
     @Bean
     public OpenAPI openApi() {
