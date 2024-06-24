@@ -1,7 +1,6 @@
 package air_astana.flight_service.models.dto;
 
 import air_astana.flight_service.models.Status;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
