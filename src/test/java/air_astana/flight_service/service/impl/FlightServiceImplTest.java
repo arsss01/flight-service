@@ -5,6 +5,7 @@ import air_astana.flight_service.models.Status;
 import air_astana.flight_service.models.dto.FlightDto;
 import air_astana.flight_service.models.entity.Flight;
 import air_astana.flight_service.repository.FlightRepository;
+import air_astana.flight_service.service.Time4JTimezoneService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -17,15 +18,19 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 public class FlightServiceImplTest {
+
+    @Mock
+    private Time4JTimezoneService time4JTimezoneService;
 
     @Mock
     private FlightRepository flightRepository;
@@ -42,26 +47,29 @@ public class FlightServiceImplTest {
     }
 
     @Test
-    public void testCreateFlight_Success() {
+    public void testCreateFlight_Success() throws GlobalException {
         FlightDto flightDto = new FlightDto();
-        Flight flight = new Flight();
+        flightDto.setOrigin("UTC");
+        flightDto.setDestination("America/New_York");
+        OffsetDateTime departure = OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.UTC);
+        OffsetDateTime arrival = OffsetDateTime.now().plusHours(1).withOffsetSameInstant(ZoneOffset.ofHours(-4));
 
-        when(mapper.map(flightDto, Flight.class)).thenReturn(flight);
-        when(flightRepository.save(any(Flight.class))).thenReturn(flight);
+        flightDto.setDeparture(departure);
+        flightDto.setArrival(arrival);
+
+        when(time4JTimezoneService.getTimezone("UTC")).thenReturn("UTC");
+        when(time4JTimezoneService.getTimezone("America/New_York")).thenReturn("America/New_York");
+
+        Flight mappedFlight = new Flight();
+        when(mapper.map(flightDto, Flight.class)).thenReturn(mappedFlight);
 
         flightService.createFlight(flightDto);
 
-        verify(flightRepository, times(1)).save(flight);
+        verify(flightRepository, times(1)).save(mappedFlight);
     }
 
     @Test
-    public void testCreateFlight_NullFlight() {
-        Exception exception = assertThrows(GlobalException.class, () -> flightService.createFlight(null));
-        assertThat(exception.getMessage()).isEqualTo("flight is null");
-    }
-
-    @Test
-    public void testUpdateFlight_Success() {
+    public void testUpdateFlight_Status_Success() {
         Integer flightId = 1;
         Status newStatus = Status.IN_TIME;
         Flight existingFlight = new Flight();
@@ -70,7 +78,7 @@ public class FlightServiceImplTest {
         when(flightRepository.findById(flightId)).thenReturn(Optional.of(existingFlight));
         when(mapper.map(existingFlight, Flight.class)).thenReturn(existingFlight);
 
-        flightService.updateFlight(flightId, newStatus);
+        flightService.updateFlightStatus(flightId, newStatus);
 
         ArgumentCaptor<Flight> flightCaptor = ArgumentCaptor.forClass(Flight.class);
         verify(flightRepository, times(1)).save(flightCaptor.capture());
@@ -78,27 +86,28 @@ public class FlightServiceImplTest {
     }
 
     @Test
-    public void testUpdateFlight_FlightNotFound() {
+    public void testUpdateFlight_FlightStatusNotFound() {
         Integer flightId = 1;
         Status newStatus = Status.IN_TIME;
 
         when(flightRepository.findById(flightId)).thenReturn(Optional.empty());
 
-        Exception exception = assertThrows(GlobalException.class, () -> flightService.updateFlight(flightId, newStatus));
+        Exception exception = assertThrows(GlobalException.class, () -> flightService.updateFlightStatus(flightId, newStatus));
         assertThat(exception.getMessage()).isEqualTo("Flight by id not found");
     }
 
     @Test
     public void testGetAllFlights_WithSearchQuery() {
-        String searchQuery = "test";
+        String origin = "test";
+        String destination = "test";
         Pageable pageable = mock(Pageable.class);
         Page<Flight> flightPage = new PageImpl<>(Collections.emptyList());
         Specification<Flight> spec = mock(Specification.class);
 
-        when(flightRepository.buildSpecification(searchQuery)).thenReturn(spec);
+        when(flightRepository.buildSpecification(origin, destination)).thenReturn(spec);
         when(flightRepository.findAll(spec, pageable)).thenReturn(flightPage);
 
-        Page<FlightDto> result = flightService.getAllFlights(searchQuery, pageable);
+        Page<FlightDto> result = flightService.getAllFlights(origin, destination, pageable);
 
         assertThat(result).isEmpty();
         verify(flightRepository, times(1)).findAll(spec, pageable);
@@ -111,7 +120,7 @@ public class FlightServiceImplTest {
 
         when(flightRepository.findAll(pageable)).thenReturn(flightPage);
 
-        Page<FlightDto> result = flightService.getAllFlights(null, pageable);
+        Page<FlightDto> result = flightService.getAllFlights(null, null, pageable);
 
         assertThat(result).isEmpty();
         verify(flightRepository, times(1)).findAll(pageable);

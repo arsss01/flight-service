@@ -11,16 +11,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-
 @RestController
 @RequestMapping("/flights")
 @RequiredArgsConstructor
 public class FlightController {
-
     private final FlightService flightService;
 
     @GetMapping
-    public ResponseEntity<?> getAllFlights(@RequestParam (required = false) String searchQuery, Pageable pageable) {
+    public ResponseEntity<?> getAllFlights(@RequestParam(required = false) String origin,
+                                           @RequestParam(required = false) String destination, Pageable pageable) {
         if (pageable.getSort().isUnsorted()) {
             pageable = PageRequest.of(
                     pageable.getPageNumber(),
@@ -28,6 +27,7 @@ public class FlightController {
                     Sort.by("arrival").ascending()
             );
         }
-        return ResponseEntity.ok(flightService.getAllFlights(searchQuery, pageable));
+
+        return ResponseEntity.ok(flightService.getAllFlights(origin, destination, pageable));
     }
 }

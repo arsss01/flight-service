@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
+import java.time.OffsetDateTime;
 
 @Data
 @AllArgsConstructor
@@ -19,8 +19,8 @@ public class Flight {
     private Integer id;
     private String origin;
     private String destination;
-    private Date departure;
-    private Date arrival;
+    private OffsetDateTime departure;
+    private OffsetDateTime arrival;
     @Enumerated(EnumType.STRING)
     private Status status;
 }

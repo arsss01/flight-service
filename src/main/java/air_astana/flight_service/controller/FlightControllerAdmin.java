@@ -8,10 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/flights-admin")
+@RequestMapping("/admin/flights")
 @RequiredArgsConstructor
 public class FlightControllerAdmin {
-
     private final FlightService flightService;
 
     @PostMapping
@@ -21,8 +20,8 @@ public class FlightControllerAdmin {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateFlight(@PathVariable Integer id, @RequestParam Status status) {
-        flightService.updateFlight(id, status);
+    public ResponseEntity<?> updateFlightStatus(@PathVariable Integer id, @RequestParam Status status) {
+        flightService.updateFlightStatus(id, status);
         return ResponseEntity.ok().build();
     }
 }

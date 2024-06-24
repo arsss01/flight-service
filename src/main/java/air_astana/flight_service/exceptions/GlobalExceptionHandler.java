@@ -22,7 +22,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleGlobalException(Exception ex) {
-        ex.printStackTrace();
+        logger.error("An error occurred: {}" + ex.getMessage(), ex);
 
         ApiError err = new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), null);
         return ResponseEntity.status(err.getStatus()).body(err);
@@ -32,7 +32,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<Object> handleGlobalException(GlobalException ex, WebRequest request) {
         logger.error("exceptionId: " + ex.exceptionId);
         logger.error("exception errorDetails: " + ex.errorDetails);
-        ex.printStackTrace();
+        logger.error("An error occurred: {}" + ex.getMessage(), ex);
 
         ApiError err = new ApiError(ex.exceptionId, HttpStatus.INTERNAL_SERVER_ERROR,
                 ex.getMessage(), request.getContextPath(), ex.errorDetails);
@@ -40,7 +40,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(err);
     }
 
-    // triggers when the JSON is invalid
     @Override
     protected ResponseEntity<Object> handleHttpMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex,
                                                                      HttpHeaders headers,
@@ -58,7 +57,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
 
-    // triggers when the JSON is malformed
     @Override
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
                                                                   HttpHeaders headers, HttpStatusCode status, WebRequest request) {
@@ -72,7 +70,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(status).body(err);
     }
 
-    // triggers when @Valid fails
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
                                                                   HttpHeaders headers, HttpStatusCode status, WebRequest request) {
@@ -88,11 +85,10 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(status).body(err);
     }
 
-    // triggers when there are missing parameters
     @Override
     protected ResponseEntity<Object> handleMissingServletRequestParameter(MissingServletRequestParameterException ex,
                                                                           HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-        Map<String, Object> details = new HashMap();
+        Map<String, Object> details = new HashMap<>();
         details.put("parameter is missing", ex.getParameterName());
 
         ApiError err = new ApiError(HttpStatus.BAD_REQUEST, request.getContextPath(),

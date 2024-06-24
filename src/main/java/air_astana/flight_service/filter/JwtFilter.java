@@ -33,6 +33,7 @@ public class JwtFilter extends OncePerRequestFilter {
         try {
             HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
             String jwt = getTokenFromHttpRequest(httpServletRequest);
+
             if (jwt != null) {
                 Authentication authentication = this.getAuthentication(jwt);
 
@@ -50,9 +51,11 @@ public class JwtFilter extends OncePerRequestFilter {
 
     private String getTokenFromHttpRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
+
         if (bearerToken != null && bearerToken.startsWith("Bearer")) {
             return bearerToken.substring(7, bearerToken.length());
         }
+
         return null;
     }
 

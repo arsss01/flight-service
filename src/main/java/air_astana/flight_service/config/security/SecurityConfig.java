@@ -23,7 +23,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth ->
                         auth.requestMatchers("/swagger-ui.html", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
                                 .requestMatchers("/flights/**").permitAll()
-                                .requestMatchers("/flights-admin/**").hasAuthority("MODERATOR")
+                                .requestMatchers("/admin/flights/**").hasAuthority("MODERATOR")
                                 .anyRequest().authenticated()
                 );
 
